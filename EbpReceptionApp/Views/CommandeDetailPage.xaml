@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:toolkit="http://xamarin.com/schemas/2020/toolkit"
+             x:Class="EbpReceptionApp.Views.CommandeDetailPage"
+             Title="{Binding Title}"
+             BackgroundColor="{StaticResource BackgroundColor}">
+
+    <ContentPage.ToolbarItems>
+        <ToolbarItem Icon="print.png" Text="Imprimer CF" Command="{Binding ImprimerCFCommand}" />
+        <ToolbarItem Icon="check.png" Text="Marquer soldée" Command="{Binding MarquerSoldeeCommand}" />
+    </ContentPage.ToolbarItems>
+
+    <Grid Padding="10" RowSpacing="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header with commande info -->
+        <Frame Grid.Row="0" BackgroundColor="White" Padding="10" Margin="0,0,0,5">
+            <Grid ColumnSpacing="10" RowSpacing="5">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <Label Grid.Column="0" Grid.Row="0" Text="Commande:" />
+                <Label Grid.Column="1" Grid.Row="0" Text="{Binding Commande.NumeroCommande}" FontAttributes="Bold" />
+                <Label Grid.Column="2" Grid.Row="0" Text="Date:" />
+                <Label Grid.Column="3" Grid.Row="0" Text="{Binding Commande.DateCommande, StringFormat='{0:dd/MM/yyyy}'}" />
+
+                <Label Grid.Column="0" Grid.Row="1" Text="Fournisseur:" />
+                <Label Grid.Column="1" Grid.Row="1" Grid.ColumnSpan="3" Text="{Binding Commande.Fournisseur}" FontAttributes="Bold" />
+
+                <Label Grid.Column="0" Grid.Row="2" Text="Statut:" />
+                <Label Grid.Column="1" Grid.Row="2" Text="{Binding Commande.Statut}" TextColor="{Binding Commande.Statut, Converter={StaticResource StatutToColorConverter}}" FontAttributes="Bold" />
+                <Label Grid.Column="2" Grid.Row="2" Text="Dépôt:" />
+                <Label Grid.Column="3" Grid.Row="2" Text="{Binding Commande.Depot}" />
+            </Grid>
+        </Frame>
+
+        <!-- BL Fournisseur input -->
+        <Frame Grid.Row="1" BackgroundColor="White" Padding="10" Margin="0,0,0,5">
+            <StackLayout>
+                <Label Text="Numéro BL Fournisseur:" />
+                <Grid ColumnSpacing="10">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <Entry Grid.Column="0" Text="{Binding NumeroBl}" Placeholder="Saisir le numéro de BL" />
+                    <Button Grid.Column="1" Text="Enregistrer" Command="{Binding SaveNumeroBLCommand}" Style="{StaticResource PrimaryButton}" />
+                </Grid>
+            </StackLayout>
+        </Frame>
+
+        <!-- Filters and Search -->
+        <Grid Grid.Row="2" ColumnSpacing="10">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <Picker Grid.Column="0" Title="Filtrer par statut" ItemsSource="{Binding StatutFilters}" SelectedItem="{Binding SelectedStatutFilter}" />
+            <SearchBar Grid.Column="1" Placeholder="Rechercher..." Text="{Binding SearchText}" />
+        </Grid>
+
+        <!-- Action buttons -->
+        <Grid Grid.Row="3" ColumnSpacing="10">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <Button Grid.Column="0" Text="Réceptionner tout" Command="{Binding ReceptionnerToutCommand}" Style="{StaticResource PrimaryButton}" />
+            <Button Grid.Column="1" Text="Marquer soldée" Command="{Binding MarquerSoldeeCommand}" Style="{StaticResource SecondaryButton}" />
+        </Grid>
+
+        <!-- Lignes List -->
+        <RefreshView Grid.Row="4" IsRefreshing="{Binding IsRefreshing}" Command="{Binding RefreshCommand}">
+            <CollectionView ItemsSource="{Binding LignesFiltered}">
+                <CollectionView.EmptyView>
+                    <StackLayout VerticalOptions="CenterAndExpand" HorizontalOptions="CenterAndExpand">
+                        <Label Text="Aucune ligne trouvée" HorizontalOptions="Center" />
+                        <Button Text="Actualiser" Command="{Binding RefreshCommand}" Style="{StaticResource SecondaryButton}" />
+                    </StackLayout>
+                </CollectionView.EmptyView>
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <SwipeView>
+                            <SwipeView.LeftItems>
+                                <SwipeItems>
+                                    <SwipeItem Text="Réceptionner" BackgroundColor="{StaticResource SuccessColor}"
+                                               Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.ReceptionnerLigneCommand}"
+                                               CommandParameter="{Binding}" />
+                                </SwipeItems>
+                            </SwipeView.LeftItems>
+                            <SwipeView.RightItems>
+                                <SwipeItems>
+                                    <SwipeItem Text="Détail" BackgroundColor="{StaticResource PrimaryColor}"
+                                               Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.ReceptionnerDetailCommand}"
+                                               CommandParameter="{Binding}" />
+                                    <SwipeItem Text="CM" BackgroundColor="{StaticResource AccentColor}"
+                                               IsVisible="{Binding EstContremarque}"
+                                               Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.ImprimerCMCommand}"
+                                               CommandParameter="{Binding}" />
+                                </SwipeItems>
+                            </SwipeView.RightItems>
+                            <Frame Margin="2" Padding="10" BackgroundColor="White">
+                                <Grid ColumnSpacing="10" RowSpacing="5">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+
+                                    <!-- Statut indicator -->
+                                    <BoxView Grid.Column="0" Grid.RowSpan="3" WidthRequest="8" 
+                                             BackgroundColor="{Binding Statut, Converter={StaticResource StatutToColorConverter}}"
+                                             VerticalOptions="FillAndExpand" />
+
+                                    <!-- First row: Reference and CM indicator -->
+                                    <Label Grid.Column="1" Grid.Row="0" Text="{Binding ReferenceArticle}" FontAttributes="Bold" />
+                                    <Label Grid.Column="2" Grid.Row="0" Text="CM" IsVisible="{Binding EstContremarque}" 
+                                           TextColor="{StaticResource AccentColor}" FontAttributes="Bold" />
+
+                                    <!-- Second row: Designation -->
+                                    <Label Grid.Column="1" Grid.Row="1" Grid.ColumnSpan="2" Text="{Binding DesignationArticle}" LineBreakMode="TailTruncation" />
+
+                                    <!-- Third row: Quantities -->
+                                    <StackLayout Grid.Column="1" Grid.Row="2" Grid.ColumnSpan="2" Orientation="Horizontal" Spacing="15">
+                                        <StackLayout Orientation="Horizontal">
+                                            <Label Text="Cmd:" />
+                                            <Label Text="{Binding QuantiteCommandee}" FontAttributes="Bold" />
+                                        </StackLayout>
+                                        <StackLayout Orientation="Horizontal">
+                                            <Label Text="Reliq:" />
+                                            <Label Text="{Binding QuantiteReliquat}" FontAttributes="Bold" />
+                                        </StackLayout>
+                                        <StackLayout Orientation="Horizontal" IsVisible="{Binding EstEnCoursReception}">
+                                            <Label Text="En cours:" />
+                                            <Label Text="{Binding QuantiteEnCoursReception}" FontAttributes="Bold" TextColor="{StaticResource InProgressColor}" />
+                                        </StackLayout>
+                                    </StackLayout>
+                                </Grid>
+                            </Frame>
+                        </SwipeView>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+        </RefreshView>
+
+        <!-- Bottom action buttons -->
+        <Frame Grid.Row="5" BackgroundColor="White" Padding="10" IsVisible="{Binding AreLignesSelected}">
+            <StackLayout Orientation="Horizontal" HorizontalOptions="CenterAndExpand">
+                <Button Text="Réceptionner sélection" Command="{Binding ReceptionnerLignesCommand}" 
+                        Style="{StaticResource PrimaryButton}" HorizontalOptions="FillAndExpand" />
+            </StackLayout>
+        </Frame>
+    </Grid>
+</ContentPage>

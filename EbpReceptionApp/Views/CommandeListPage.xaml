@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:toolkit="http://xamarin.com/schemas/2020/toolkit"
+             xmlns:sfgrid="clr-namespace:Syncfusion.SfDataGrid.XForms;assembly=Syncfusion.SfDataGrid.XForms"
+             x:Class="EbpReceptionApp.Views.CommandeListPage"
+             Title="{Binding Title}"
+             BackgroundColor="{StaticResource BackgroundColor}">
+
+    <ContentPage.ToolbarItems>
+        <ToolbarItem Icon="settings.png" Command="{Binding SettingsCommand}" />
+        <ToolbarItem Icon="logout.png" Command="{Binding LogoutCommand}" />
+    </ContentPage.ToolbarItems>
+
+    <Grid Padding="10" RowSpacing="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header with Dépot and Search -->
+        <Grid Grid.Row="0" ColumnSpacing="10">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <Label Grid.Column="0" Text="Dépôt:" VerticalOptions="Center" />
+            <Label Grid.Column="0" Text="{Binding Depot}" FontAttributes="Bold" VerticalOptions="Center" Margin="50,0,0,0" />
+            <SearchBar Grid.Column="1" Placeholder="Rechercher une commande..." Text="{Binding SearchText}" />
+        </Grid>
+
+        <!-- Filters -->
+        <StackLayout Grid.Row="1" Orientation="Horizontal" Spacing="10">
+            <Label Text="Filtrer par:" VerticalOptions="Center" />
+            <Picker Title="Statut" ItemsSource="{Binding StatutFilters}" SelectedItem="{Binding SelectedStatutFilter}" 
+                    HorizontalOptions="FillAndExpand" />
+        </StackLayout>
+
+        <!-- Commandes List -->
+        <RefreshView Grid.Row="2" IsRefreshing="{Binding IsRefreshing}" Command="{Binding RefreshCommand}">
+            <CollectionView ItemsSource="{Binding CommandesFiltered}">
+                <CollectionView.EmptyView>
+                    <StackLayout VerticalOptions="CenterAndExpand" HorizontalOptions="CenterAndExpand">
+                        <Label Text="Aucune commande trouvée" HorizontalOptions="Center" />
+                        <Button Text="Actualiser" Command="{Binding RefreshCommand}" Style="{StaticResource SecondaryButton}" />
+                    </StackLayout>
+                </CollectionView.EmptyView>
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <SwipeView>
+                            <SwipeView.RightItems>
+                                <SwipeItems>
+                                    <SwipeItem Text="Ouvrir" BackgroundColor="{StaticResource PrimaryColor}" 
+                                               Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.OpenCommandeCommand}"
+                                               CommandParameter="{Binding}" />
+                                    <SwipeItem Text="Sélectionner" BackgroundColor="{StaticResource AccentColor}"
+                                               Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.SelectCommandeCommand}"
+                                               CommandParameter="{Binding}" />
+                                </SwipeItems>
+                            </SwipeView.RightItems>
+                            <Frame Margin="2" Padding="10" BackgroundColor="White">
+                                <Frame.GestureRecognizers>
+                                    <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.OpenCommandeCommand}"
+                                                          CommandParameter="{Binding}" />
+                                </Frame.GestureRecognizers>
+                                <Grid ColumnSpacing="10" RowSpacing="5">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+
+                                    <!-- Statut indicator -->
+                                    <BoxView Grid.Column="0" Grid.RowSpan="3" WidthRequest="8" 
+                                             BackgroundColor="{Binding Statut, Converter={StaticResource StatutToColorConverter}}"
+                                             VerticalOptions="FillAndExpand" />
+
+                                    <!-- First row: Commande number and date -->
+                                    <Label Grid.Column="1" Grid.Row="0" Text="{Binding NumeroCommande}" FontAttributes="Bold" />
+                                    <Label Grid.Column="2" Grid.Row="0" Text="{Binding DateCommande, StringFormat='{0:dd/MM/yyyy}'}" />
+
+                                    <!-- Second row: Fournisseur -->
+                                    <Label Grid.Column="1" Grid.Row="1" Grid.ColumnSpan="2" Text="{Binding Fournisseur}" />
+
+                                    <!-- Third row: BL and Selection indicator -->
+                                    <StackLayout Grid.Column="1" Grid.Row="2" Orientation="Horizontal">
+                                        <Label Text="BL:" />
+                                        <Label Text="{Binding NumeroBL}" FontAttributes="Bold" />
+                                    </StackLayout>
+                                    <CheckBox Grid.Column="2" Grid.Row="2" IsChecked="{Binding EstEnCoursReception}" 
+                                              Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.SelectCommandeCommand}"
+                                              CommandParameter="{Binding}" />
+                                </Grid>
+                            </Frame>
+                        </SwipeView>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+        </RefreshView>
+
+        <!-- Bottom action buttons -->
+        <StackLayout Grid.Row="3" Orientation="Horizontal" IsVisible="{Binding AreCommandesSelected}">
+            <Button Text="Imprimer documents" Command="{Binding ImprimerDocumentsCommand}" 
+                    Style="{StaticResource PrimaryButton}" HorizontalOptions="FillAndExpand" />
+        </StackLayout>
+    </Grid>
+</ContentPage>
